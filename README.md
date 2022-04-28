@@ -24,5 +24,27 @@ To run CloudEvents processor:
 cd cloud-streams-processor-cloudevents
 mvn spring-boot:run
 ```
+To run CloudEvents consumer:
+``` bash
+cd cloud-streams-sink-cloudevents
+mvn spring-boot:run
+```
+
+## CloudEvents Data Format encoding
+
+CloudEvents supports structured and binary format encoding. In the samples, necessary code block is built but commented out for brevity. 
+
+Current flow in the code:
+
+1) Source (CloudEvent w/ Binary format encoding)
+2) Processor (
+        Incoming Message: CloudEvent w/ Binary format encoding),
+        Outgoing Message: CloudEvent w/ Structured format encoding)
+    )
+3) Sink (CloudEvent w/ Binary format encoding)
+
+Feel free to comment/uncomment respective blocks to try out other combination (mix) of binary & structured format encoding.
+
+
 
 

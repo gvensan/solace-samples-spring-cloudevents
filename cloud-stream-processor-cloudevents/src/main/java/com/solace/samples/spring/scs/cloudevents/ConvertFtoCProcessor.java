@@ -45,6 +45,7 @@ public class ConvertFtoCProcessor {
 	}
 	
 	// Spring Cloud Function to convert SensorReading data from Fahreinheit => Celcius
+	
 	@Bean
 	public Function<Message<byte[]>, Message<SensorReading>> convertFtoC() {
 		return message -> {
@@ -99,5 +100,8 @@ public class ConvertFtoCProcessor {
 //			return celciusReading;
 //		};	
 //	}
+	
+	
+	
 		
 }

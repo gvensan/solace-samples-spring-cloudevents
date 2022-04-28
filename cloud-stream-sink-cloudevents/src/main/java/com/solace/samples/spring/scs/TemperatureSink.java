@@ -22,6 +22,7 @@ package com.solace.samples.spring.scs;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -44,7 +45,7 @@ public class TemperatureSink {
 		return reading -> {
 			log.info("Received Structured (C) Headers: " + reading.getHeaders());
 			log.info("Received Structured (C) Payload: " + reading.getPayload());
-			log.info("Received Structured (C): " + reading.getPayload());
+			log.info("Received Structured (C): " + ToStringBuilder.reflectionToString(reading));
 		};
 	}
 
@@ -53,10 +54,9 @@ public class TemperatureSink {
 //		return message -> {
 //			log.info("Received Binary (C) Headers: " + message.getHeaders());
 //			log.info("Received Binary (C) Payload: " + message.getPayload());
-//
-//			SensorReading reading = SerializationUtils.deserialize(message.getPayload());
-//			log.info("Received Binary (C): " + reading);
+//			log.info("Received Binary (C): " + ToStringBuilder.reflectionToString(message));
 //
 //		};
 //	}
+	
 }
