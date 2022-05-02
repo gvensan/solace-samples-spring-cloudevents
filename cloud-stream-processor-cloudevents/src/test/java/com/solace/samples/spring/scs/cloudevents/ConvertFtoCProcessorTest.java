@@ -70,10 +70,7 @@ public class ConvertFtoCProcessorTest {
 				.setDataContentType("application/json")
 				.setType("com.solace.samples.spring.scs.cloudevents")
 				.build();
-				
-		// NOTE: Notice the .buiild("ce_") statement. We are forcing the header attribute prefix due to an open issue
-		// Check out https://github.com/cloudevents/sdk-java/issues/359
-				
+								
 
 		BeanFactoryChannelResolver channelResolver = context.getBean("integrationChannelResolver",
 				BeanFactoryChannelResolver.class);
@@ -97,6 +94,10 @@ public class ConvertFtoCProcessorTest {
 		
 		
 		assertNotNull(headers);
+		
+		// NOTE: We are checking for CloudEvent header attributes with prefix of "ce_" instead of usual "ce-".
+		// It is due to an open issue in the CloudEvents Java SDK - https://github.com/cloudevents/sdk-java/issues/359
+		
 		assertThat((String) headers.toString(), allOf(containsString("ce_source"), containsString("ce_datacontenttype"),
 				containsString("ce_specversion"), containsString("ce_type"), containsString("ce_id")));
 		
