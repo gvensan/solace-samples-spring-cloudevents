@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>  
 
   <groupId>com.solace.samples.spring</groupId>
-  <artifactId>spring-samples-datamodel</artifactId>
+  <artifactId>spring-samples-cloudevents-datamodel</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>spring-samples-datamodel</name>
+  <name>spring-samples-cloudevents-datamodel</name>
   <description>DataModel for Solace Spring Samples</description>
 
   <properties>

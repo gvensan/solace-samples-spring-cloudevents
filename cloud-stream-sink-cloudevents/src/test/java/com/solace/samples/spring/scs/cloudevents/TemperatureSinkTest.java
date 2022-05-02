@@ -17,25 +17,20 @@
  * under the License.
  */
 
-package com.solace.samples.spring.scs;
+package com.solace.samples.spring.scs.cloudevents;
 
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.util.concurrent.TimeUnit;
+import java.net.URI;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.stream.test.binder.MessageCollector;
+import org.springframework.cloud.function.cloudevent.CloudEventMessageBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.solace.samples.spring.common.SensorReading;
@@ -43,38 +38,25 @@ import com.solace.samples.spring.common.SensorReading.BaseUnit;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class ConvertFtoCProcessorTest {
-	
-	@Autowired
-	private MessageCollector collector;
-	
+public class TemperatureSinkTest {
+
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
-	public void testFeaturesProcessor() throws InterruptedException {
-		
-		double temperature = 70.0d;
-		SensorReading reading = new SensorReading("test", temperature, BaseUnit.FAHRENHEIT);
-		Message<SensorReading> msgInput = MessageBuilder.withPayload(reading).build();
-
+	public void testSink() {
 		BeanFactoryChannelResolver channelResolver = context.getBean("integrationChannelResolver",
 				BeanFactoryChannelResolver.class);
-		MessageChannel input = channelResolver.resolveDestination("convertFtoC-in-0");
-		MessageChannel output = channelResolver.resolveDestination("convertFtoC-out-0");
-		
-		assertNotNull(msgInput.toString());
-		input.send(msgInput);
-		
-		
-		Message<?> msgOutput = (Message<?>) collector.forChannel(output).poll(5, TimeUnit.SECONDS);
-		String payload = (msgOutput != null) ? (String) msgOutput.getPayload() : null;
-		
-		assertNotNull(payload);
-		assertThat((String) payload,
-				allOf(containsString("sensorID"), containsString("temperature"), containsString("baseUnit"),
-						containsString("timestamp"), containsString("CELSIUS"), containsString("21.1")));
-		
+		MessageChannel channel = channelResolver.resolveDestination("sink-in-0");
+		Message<SensorReading> celsiusReading =  CloudEventMessageBuilder
+				.withData(new SensorReading("test", 50, BaseUnit.FAHRENHEIT))
+				.setId(UUID.randomUUID().toString())
+				.setSource(URI.create("https://spring.cloudevents.sample"))
+				.setSpecVersion("1.0")
+				.setDataContentType("application/json")
+				.setType("com.solace.samples.spring.scs.cloudevents")
+				.build();
+		channel.send(celsiusReading);
 	}
 
 }

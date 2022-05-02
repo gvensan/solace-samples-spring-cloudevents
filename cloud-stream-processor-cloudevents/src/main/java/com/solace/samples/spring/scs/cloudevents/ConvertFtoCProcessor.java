@@ -52,9 +52,10 @@ public class ConvertFtoCProcessor {
 	@Bean
 	public Function<Message<SensorReading>, Message<SensorReading>> convertFtoC() {
 		return message -> {
+			log.info("Received (F) Headers: " + message.getHeaders());
+			log.info("Received (F) Payload: " + message.getPayload());
+			
 			SensorReading reading = message.getPayload();
-			log.info("Received (F): " + reading);
-
 			double temperatureCelsius = (reading.getTemperature().doubleValue() - 32) * 5 / 9;
 			reading.setTemperature(temperatureCelsius);
 			reading.setBaseUnit(SensorReading.BaseUnit.CELSIUS);
@@ -63,7 +64,7 @@ public class ConvertFtoCProcessor {
 			Message<SensorReading> celsiusReading =  CloudEventMessageBuilder
 														.withData(reading)
 														.setId(UUID.randomUUID().toString())
-														.setSource(URI.create("https://spring.cloudevenets.sample"))
+														.setSource(URI.create("https://spring.cloudevents.sample"))
 														.setSpecVersion("1.0")
 														.setDataContentType("application/json")
 														.setType("com.solace.samples.spring.scs.cloudevents")
@@ -83,8 +84,11 @@ public class ConvertFtoCProcessor {
 	
 //	@Bean
 //	public Function<SensorReading, Message<SensorReading>> convertFtoC() {
-//		return f_reading -> {
-//			log.info("Received (F): " + f_reading);
+//		return message -> {
+//			log.info("Received (F) Headers: " + message.getHeaders());
+//			log.info("Received (F) Payload: " + message.getPayload());
+//	
+//			SensorReading f_reading = message.getPayload();
 //
 //			double temperatureCelsius = (f_reading.getTemperature().doubleValue() - 32) * 5 / 9;
 //			SensorReading c_reading = new SensorReading(
@@ -104,7 +108,7 @@ public class ConvertFtoCProcessor {
 //	public CloudEventHeaderEnricher enrich() {
 //		return headers -> headers
 //							.setId(UUID.randomUUID().toString())
-//							.setSource(URI.create("https://spring.cloudevenets.sample"))
+//							.setSource(URI.create("https://spring.cloudevents.sample"))
 //							.setSpecVersion("1.0")
 //							.setDataContentType("application/json")
 //							.setType("com.solace.samples.spring.scs.cloudevents");

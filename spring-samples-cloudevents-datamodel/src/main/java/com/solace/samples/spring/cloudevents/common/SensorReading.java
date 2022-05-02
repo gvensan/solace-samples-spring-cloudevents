@@ -18,7 +18,7 @@
  */
 
 
-package com.solace.samples.spring.common;
+package com.solace.samples.spring.cloudevents.common;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
