@@ -23,13 +23,12 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.function.cloudevent.CloudEventHeaderEnricher;
 import org.springframework.cloud.function.cloudevent.CloudEventMessageBuilder;
-import org.springframework.cloud.stream.binder.BinderHeaders;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 
@@ -44,12 +43,16 @@ public class ConvertFtoCProcessor {
 		SpringApplication.run(ConvertFtoCProcessor.class, args);
 	}
 	
-	// Spring Cloud Function to convert SensorReading data from Fahreinheit => Celcius
+	// Spring Cloud Function to convert SensorReading data from Fahreinheit => Celsius //
+
+	
+	// OPTION 1: Allowing non-functional aspects into the 
+	// business logic (construction of CloudEvent, decorating attributes etc)
 	
 	@Bean
-	public Function<Message<byte[]>, Message<SensorReading>> convertFtoC() {
+	public Function<Message<SensorReading>, Message<SensorReading>> convertFtoC() {
 		return message -> {
-			SensorReading reading = SerializationUtils.deserialize(message.getPayload());
+			SensorReading reading = message.getPayload();
 			log.info("Received (F): " + reading);
 
 			double temperatureCelsius = (reading.getTemperature().doubleValue() - 32) * 5 / 9;
@@ -57,51 +60,55 @@ public class ConvertFtoCProcessor {
 			reading.setBaseUnit(SensorReading.BaseUnit.CELSIUS);
 
 
-			Message<SensorReading> celciusReading =  CloudEventMessageBuilder
+			Message<SensorReading> celsiusReading =  CloudEventMessageBuilder
 														.withData(reading)
-														.setHeader(BinderHeaders.TARGET_DESTINATION, "sensor/temperature/celsius")
 														.setId(UUID.randomUUID().toString())
 														.setSource(URI.create("https://spring.cloudevenets.sample"))
 														.setSpecVersion("1.0")
 														.setDataContentType("application/json")
 														.setType("com.solace.samples.spring.scs.cloudevents")
 														.build();
-			log.info("Sending (C) Headers: " + celciusReading.getHeaders());
-			log.info("Sending (C) Payload: " + celciusReading.getPayload());
-			return celciusReading;
+			log.info("Sending (C) Headers: " + celsiusReading.getHeaders());
+			log.info("Sending (C) Payload: " + celsiusReading.getPayload());
+			return celsiusReading;
 		};
 	}
 	
-	// Uncomment the following function block, if you would like the output event to be a CloudEvnet of
-	// binary type. When using this function, make sure that you comment the previous function block.
+	// OPTION 2: Keeping the non-functional aspects separate from the business logic
+	// To enable this 
+	//	a) comment the function blocks:
+	// 			Function<Message<byte[]>, Message<SensorReading>> convertFtoC()
+	//			Function<Message<byte[]>, Message<byte[]>> convertFtoC()
+	//  b) uncomment the function blocks:
 	
 //	@Bean
-//	public Function<Message<byte[]>, Message<byte[]>> convertFtoC() {
-//		return message -> {
-//			SensorReading reading = SerializationUtils.deserialize(message.getPayload());
-//			log.info("Received (F): " + reading);
+//	public Function<SensorReading, Message<SensorReading>> convertFtoC() {
+//		return f_reading -> {
+//			log.info("Received (F): " + f_reading);
 //
-//			double temperatureCelsius = (reading.getTemperature().doubleValue() - 32) * 5 / 9;
-//			reading.setTemperature(temperatureCelsius);
-//			reading.setBaseUnit(SensorReading.BaseUnit.CELSIUS);
-//
-//			Message<byte[]> celciusReading =  CloudEventMessageBuilder
-//														.withData(SerializationUtils.serialize(reading))
-//														.setHeader(BinderHeaders.TARGET_DESTINATION, "sensor/temperature/celsius")
-//														.setId(UUID.randomUUID().toString())
-//														.setSource(URI.create("https://spring.cloudevenets.sample"))
-//														.setSpecVersion("1.0")
-//														.setDataContentType("application/octet-stream")
-//														.setType("com.solace.samples.spring.scs.cloudevents")
-//														.build();
-//			
-//			log.info("Sending (C) Headers: " + celciusReading.getHeaders());
-//			log.info("Sending (C) Payload: " + celciusReading.getPayload());
-//			return celciusReading;
-//		};	
+//			double temperatureCelsius = (f_reading.getTemperature().doubleValue() - 32) * 5 / 9;
+//			SensorReading c_reading = new SensorReading(
+//												f_reading.getSensorID(),
+//												temperatureCelsius,
+//												SensorReading.BaseUnit.CELSIUS);
+//			Message<SensorReading> celsiusReading = CloudEventMessageBuilder
+//															.withData(c_reading)
+//													        .build();
+//			log.info("Sending (C) Headers: " + celsiusReading.getHeaders());
+//			log.info("Sending (C) Payload: " + celsiusReading.getPayload());
+//			return celsiusReading;
+//		};
 //	}
-	
-	
+//	
+//	@Bean
+//	public CloudEventHeaderEnricher enrich() {
+//		return headers -> headers
+//							.setId(UUID.randomUUID().toString())
+//							.setSource(URI.create("https://spring.cloudevenets.sample"))
+//							.setSpecVersion("1.0")
+//							.setDataContentType("application/json")
+//							.setType("com.solace.samples.spring.scs.cloudevents");
+//	}
 	
 		
 }

@@ -19,19 +19,15 @@
 
 package com.solace.samples.spring.scs.cloudevents;
 
-import java.net.URI;
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.function.cloudevent.CloudEventMessageBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.messaging.Message;
 
 import com.solace.samples.spring.common.SensorReading;
 
@@ -51,8 +47,9 @@ public class FahrenheitTempSource {
 	 * Basic Supplier which sends messages every X milliseconds
 	 * Configurable using spring.cloud.stream.poller.fixed-delay 
 	 */
+		
 	@Bean
-	public Supplier<Message<byte[]>> emitSensorReading() {
+	public Supplier<SensorReading> emitSensorReading() {
 		return () -> {
 			SensorReading reading = new SensorReading();
 
@@ -62,17 +59,8 @@ public class FahrenheitTempSource {
 			reading.setBaseUnit(SensorReading.BaseUnit.FAHRENHEIT);
 
 
-			Message<byte[]> fahrenheitReading = CloudEventMessageBuilder
-														.withData(SerializationUtils.serialize(reading))
-														.setId(UUID.randomUUID().toString())
-														.setSource(URI.create("https://spring.cloudevenets.sample"))
-														.setSpecVersion("1.0")
-														.setDataContentType("application/octet-stream")
-														.setType("com.solace.samples.spring.scs.cloudevents")
-														.build();													
-			log.info("Sending (F) Headers: " + fahrenheitReading.getHeaders());
-			log.info("Sending (F) Payload: " + fahrenheitReading.getPayload());
-			return fahrenheitReading;
+			log.info("Sending (F) Payload: " + reading);
+			return reading;
 		};
 	}
 
